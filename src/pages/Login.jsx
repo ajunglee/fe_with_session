@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuth } from '../hooks/useAuth'
 import '../App.css'
 
 // axios 기본 설정: 쿠키 자동 전송
@@ -8,11 +9,14 @@ axios.defaults.withCredentials = true;
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [errorMessage, setErrorMessage] = useState('');
+
+ 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,9 +38,12 @@ function Login() {
       });
       
       console.log('로그인 성공:', response.data);
-      // 로그인 성공 시 nickname을 포함하여 성공 페이지로 이동
-      const nickname = response.data.data?.nickname || response.data.nickname || '사용자';
-      navigate('/login/success', { state: { nickname } });
+      // 로그인 성공 시 사용자 정보를 context에 저장하고 홈으로 이동
+      const userData = response.data.data || response.data;
+      if (userData) {
+        login(userData);
+      }
+      navigate('/');
     } catch (error) {
       console.error('로그인 실패:', error);
       // alert 대신 하단에 에러 메시지 표시
